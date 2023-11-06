@@ -1,6 +1,6 @@
 import numpy as np
+import pandas as pd
 import nnfs
-from nnfs.datasets import spiral_data, vertical_data
 
 
 class Layer_Dense:
@@ -97,7 +97,7 @@ class Activation_softmax_Loss_CategoricalCrossentropy:
 
 class Optimizer_SGD:
 
-    def __init__(self, learning_rate=1.0):
+    def __init__(self, learning_rate=1):
         self.learning_rate = learning_rate
     
     def update_params(self, layer):
@@ -109,30 +109,38 @@ def main():
 
     nnfs.init()
     
-    X, y = spiral_data(samples=100, classes=3)
+    df = pd.read_csv('./data/mnist_train.csv')
 
-    dense1 = Layer_Dense(2, 512)
+    X = df.iloc[:, 1:].values
+    y = df.iloc[:, 0].values
+
+    X = np.divide(X, 255.0)
+
+    dense1 = Layer_Dense(784, 64)
     activation1 = Activation_ReLU()
-    dense2 = Layer_Dense(512, 3)
+    dense2 = Layer_Dense(64, 10)
     loss_activation = Activation_softmax_Loss_CategoricalCrossentropy()
 
     optimizer = Optimizer_SGD()
 
 
-    for epoch in range(10001):
+    for epoch in range(101):
+
+        loss = 0
+        accuracy = 0
+
 
         dense1.forward(X)
         activation1.forward(dense1.output)
         dense2.forward(activation1.output)
-        loss = loss_activation.forward(dense2.output, y)
-
+        loss += loss_activation.forward(dense2.output, y)
 
         predictions = np.argmax(loss_activation.output, axis=1)
-        if len(y.shape) == 2:
-            y = np.argmax(y, axis=1)        
-        accuracy = np.mean(predictions==y)
+        accuracy += np.mean(predictions==y)
 
-        if not epoch % 1000:
+        # breakpoint()
+
+        if not epoch % 10:
             print('epoch:', epoch)
             print('\tLoss:', loss)
             print('\tAccuracy:', accuracy)
@@ -144,5 +152,6 @@ def main():
 
         optimizer.update_params(dense1)
         optimizer.update_params(dense2)
+        
 
 main()
