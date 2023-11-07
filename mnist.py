@@ -6,7 +6,8 @@ import nnfs
 class Layer_Dense:
 
     def __init__(self, inputs, neurons):
-        self.weights = 0.01 * np.random.randn(inputs, neurons)
+        # self.weights = 0.01 * np.random.randn(inputs, neurons)
+        self.weights = 10 * np.random.randn(inputs, neurons)
         self.biases = np.zeros((1, neurons))
 
     def forward(self, inputs):
@@ -106,7 +107,7 @@ class Activation_sigmod:
 
 class Optimizer_SGD:
 
-    def __init__(self, learning_rate=1):
+    def __init__(self, learning_rate=0.001):
         self.learning_rate = learning_rate
     
     def update_params(self, layer):
@@ -121,12 +122,11 @@ def main():
     X = df.iloc[:, 1:].values
     y = df.iloc[:, 0].values
 
-    X = np.divide(X, 255.0)
+    # X = np.divide(X, 255.0)
 
     dense1 = Layer_Dense(784, 64)
     activation1 = Activation_ReLU()
     dense2 = Layer_Dense(64, 10)
-    activation2 = Activation_sigmod()
     loss_activation = Activation_softmax_Loss_CategoricalCrossentropy()
     optimizer = Optimizer_SGD()
 
