@@ -108,12 +108,13 @@ class Optimizer_SGD:
 def main():
 
     nnfs.init()
-    
+    np.random.seed(0)
+
     X, y = spiral_data(samples=100, classes=3)
 
-    dense1 = Layer_Dense(2, 512)
+    dense1 = Layer_Dense(2, 64)
     activation1 = Activation_ReLU()
-    dense2 = Layer_Dense(512, 3)
+    dense2 = Layer_Dense(64, 3)
     loss_activation = Activation_softmax_Loss_CategoricalCrossentropy()
 
     optimizer = Optimizer_SGD()

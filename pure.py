@@ -1,13 +1,111 @@
 import numpy as np
-import pandas as pd
 import nnfs
+from nnfs.datasets import spiral_data, vertical_data
+
+#np.zeros
+
+def zeros(size):
+    z = []
+    for i in range(size):
+        z.append(0)
+    z = [z]
+    return np.asarray(z, dtype=np.float32)
+
+# #np.dot
+
+# def matrix_matrix_multiplication(matrix_a, matrix_b):
+#     assert len(matrix_a[0]) == len(matrix_b)
+#     matrix_c = []
+#     for i in range(len(matrix_a)):
+#         matrix_c.append([])
+#         for j in range(len(matrix_b[0])):
+#             matrix_c[i].append(0)
+#             for k in range(len(matrix_b)):
+#                 matrix_c[i][j] += matrix_a[i][k] * matrix_b[k][j]
+#     return matrix_c
+
+# def matrix_vector_multiplication(matrix_a, vector_b):
+#     assert len(matrix_a[0]) == len(vector_b)
+#     vector_c = []
+#     for i in range(len(matrix_a)):
+#         vector_c.append(0)
+#         for j in range(len(vector_b)):
+#             vector_c[i] += matrix_a[i][j] * vector_b[j]
+#     return vector_c
+
+# def matrix_vector_addition(matrix_a, vector_b):
+#     assert len(matrix_a[0]) == len(vector_b)
+#     matrix_c = []
+#     for i in range(len(matrix_a)):
+#         matrix_c.append(zeros(len(vector_b)))
+#         for j in range(len(vector_b)):
+#             matrix_c[i][j] += matrix_a[i][j] + vector_b[j]
+#     return matrix_c 
+
+# #np.T
+
+# def transpose(matrix):
+#     matrix_t = []
+#     for i in range(len(matrix[0])):
+#         matrix_t.append([])
+#         for j in range(len(matrix)):
+#             matrix_t[i].append(matrix[j][i])
+#     return matrix_t
+
+#np.sum
+
+def sum_cols(matrix):
+    matrix_s = []
+    for i in range(len(matrix[0])):
+        matrix_s.append(0)
+        for j in range(len(matrix)):
+            matrix_s[i] += matrix[j][i]
+    matrix_s = [matrix_s]
+    return np.asarray(matrix_s)
+
+def sum_rows(matrix):
+    matrix_s = []
+    for r in matrix:
+        matrix_s.append(sum(r))
+    matrix_s = [matrix_s]
+    return np.asarray(matrix_s)
+
+#np.maximum
+
+maximum = lambda x: x if x > 0 else 0.0
+
+def maximum_vector(vector):
+    vector_m = []
+    for i, r in enumerate(vector):
+        vector_m.append([])
+        for c in r:
+            vector_m[i].append(maximum(c))
+            # breakpoint()
+    return np.asarray(vector_m, dtype=object)
+
+
+#np.exp
+
+#np.mean
+
+#np.argmax
+
+#np.clip
+
+#np.eye
+
+#np.diagflat
+
+#np.empty_like
+
+#np.log
 
 
 class Layer_Dense:
 
     def __init__(self, inputs, neurons):
         self.weights = 0.01 * np.random.randn(inputs, neurons)
-        self.biases = np.zeros((1, neurons))
+        self.biases = zeros(neurons)
 
     def forward(self, inputs):
         self.inputs = inputs
@@ -15,14 +113,14 @@ class Layer_Dense:
     
     def backward(self, dvalues):
         self.dweights = np.dot(self.inputs.T, dvalues)
-        self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
+        self.dbiases = sum_cols(dvalues)
         self.dinputs = np.dot(dvalues, self.weights.T)
 
 class Activation_ReLU:
     
     def forward(self, inputs):
         self.input = inputs
-        self.output = np.maximum(0, inputs)
+        self.output = maximum_vector(inputs)
     
     def backward(self, dvalues):
         self.dinputs = dvalues.copy()
@@ -95,18 +193,9 @@ class Activation_softmax_Loss_CategoricalCrossentropy:
         self.dinputs[range(samples), y_true] -= 1
         self.dinputs = self.dinputs / samples
 
-class Activation_sigmod:
-    
-    def forward(self, inputs):
-        self.inputs = inputs
-        self.output = 1 / (1 + np.exp(-inputs))
-
-    def backward(self, dvalues):
-        self.dinputs = dvalues * (1 - self.output) * self.output
-
 class Optimizer_SGD:
 
-    def __init__(self, learning_rate=1):
+    def __init__(self, learning_rate=1.0):
         self.learning_rate = learning_rate
     
     def update_params(self, layer):
@@ -117,34 +206,30 @@ class Optimizer_SGD:
 def main():
 
     nnfs.init()
+    np.random.seed(0)
     
-    df = pd.read_csv('./data/mnist_train.csv')
+    X, y = spiral_data(samples=100, classes=3)
 
-    X = df.iloc[:, 1:].values
-    y = df.iloc[:, 0].values
-
-    X = np.divide(X, 255.0)
-
-    dense1 = Layer_Dense(784, 64)
+    dense1 = Layer_Dense(2, 64)
     activation1 = Activation_ReLU()
-    dense2 = Layer_Dense(64, 10)
-    activation2 = Activation_sigmod()
+    dense2 = Layer_Dense(64, 3)
     loss_activation = Activation_softmax_Loss_CategoricalCrossentropy()
+
     optimizer = Optimizer_SGD()
 
 
-    for epoch in range(11):
+    for epoch in range(10001):
 
         dense1.forward(X)
         activation1.forward(dense1.output)
         dense2.forward(activation1.output)
-        activation2.forward(dense2.output)
-        loss = loss_activation.forward(activation2.output, y)
+        loss = loss_activation.forward(dense2.output, y)
+
 
         predictions = np.argmax(loss_activation.output, axis=1)
+        if len(y.shape) == 2:
+            y = np.argmax(y, axis=1)        
         accuracy = np.mean(predictions==y)
-
-        # breakpoint()
 
         if not epoch % 10:
             print('epoch:', epoch)
@@ -152,31 +237,11 @@ def main():
             print('\tAccuracy:', accuracy)
 
         loss_activation.backward(loss_activation.output, y)
-        activation2.backward(loss_activation.dinputs)
-        dense2.backward(activation2.dinputs)
+        dense2.backward(loss_activation.dinputs)
         activation1.backward(dense2.dinputs)
         dense1.backward(activation1.dinputs)
 
         optimizer.update_params(dense1)
         optimizer.update_params(dense2)
-
-     
-    df = pd.read_csv('./data/mnist_test.csv')
-
-    X = df.iloc[:, 1:].values
-    y = df.iloc[:, 0].values
-        
-    dense1.forward(X)
-    activation1.forward(dense1.output)
-    dense2.forward(activation1.output)
-    activation2.forward(dense2.output)
-    loss = loss_activation.forward(activation2.output, y)
-
-    predictions = np.argmax(loss_activation.output, axis=1)
-    accuracy = np.mean(predictions==y)
-
-    print("Test set")
-    print('\tTest Loss:', loss)
-    print('\tTest Accuracy:', accuracy)
 
 main()
