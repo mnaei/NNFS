@@ -5,7 +5,6 @@ import pandas as pd
 class Layer_Dense:
 
     def __init__(self, inputs, neurons):
-        # self.weights = 0.01 * np.random.randn(inputs, neurons)
         self.weights = 10 * np.random.randn(inputs, neurons)
         self.biases = np.zeros((1, neurons))
 
@@ -37,18 +36,13 @@ class Activation_Linear:
     def backward(self, dvalues):
         self.dinputs = dvalues.copy()
 
-class Loss:
+
+class Loss_MeanSquaredError():
 
     def calculate(self, output, y):
-        sample_losses = self.forward(output, y)
+        sample_losses = np.mean((y - np.squeeze(output))**2)
         data_loss = np.mean(sample_losses)
         return data_loss
-
-class Loss_MeanSquaredError(Loss):
-    
-    def forward(self, y_pred, y_true):
-        sample_losses = np.mean((y_true - np.squeeze(y_pred))**2)
-        return sample_losses
 
     def backward(self, dvalues, y_true):
         samples = len(dvalues)
@@ -60,7 +54,7 @@ class Loss_MeanSquaredError(Loss):
 
 class Optimizer_SGD:
 
-    def __init__(self, learning_rate=0.1):
+    def __init__(self, learning_rate=0.00000001):
         self.learning_rate = learning_rate
     
     def update_params(self, layer):
@@ -79,7 +73,7 @@ class Accuracy_Regression:
 
 def main():
 
-    np.random.seed(1)
+    np.random.seed(0)
 
     df = pd.read_csv('./data/regression_train.csv')
 
@@ -90,9 +84,6 @@ def main():
     y = df["SalePrice"]
 
     X = X.fillna(X.mean())
-
-    # X = np.divide(X, 10)
-    # y = np.divide(y, 10)
 
     X = X.values
     y = y.values
@@ -117,7 +108,6 @@ def main():
         if not epoch % 1000:
             print('epoch:', epoch)
             print('\tLoss:', loss)
-            breakpoint()
 
         loss_mse.backward(activation2.output, y)
         activation2.backward(loss_mse.dinputs)
