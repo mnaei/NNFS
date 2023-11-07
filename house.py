@@ -5,7 +5,8 @@ import pandas as pd
 class Layer_Dense:
 
     def __init__(self, inputs, neurons):
-        self.weights = 0.01 * np.random.randn(inputs, neurons)
+        # self.weights = 0.01 * np.random.randn(inputs, neurons)
+        self.weights = 1 * np.random.randn(inputs, neurons)
         self.biases = np.zeros((1, neurons))
 
     def forward(self, inputs):
@@ -59,7 +60,7 @@ class Loss_MeanSquaredError(Loss):
 
 class Optimizer_SGD:
 
-    def __init__(self, learning_rate=0.01):
+    def __init__(self, learning_rate=0.0000000005):
         self.learning_rate = learning_rate
     
     def update_params(self, layer):
@@ -81,43 +82,37 @@ def main():
 
     X = X.fillna(X.mean())
 
-    X = np.divide(X, X.max())
-    y = np.divide(y, y.max())
+    # X = np.divide(X, X.max())
+    # y = np.divide(y, y.max())
 
     X = X.values
     y = y.values
 
-    dense1 = Layer_Dense(8, 64)
+    dense1 = Layer_Dense(8, 8)
     activation1 = Activation_ReLU()
-    dense5 = Layer_Dense(64, 64)
-    activation5 = Activation_ReLU()
-    dense2 = Layer_Dense(64, 1)
+    dense2 = Layer_Dense(8, 1)
     activation2 = Activation_Linear()
     loss_mse = Loss_MeanSquaredError()
     optimizer = Optimizer_SGD()
 
 
-    for epoch in range(1001):
+    for epoch in range(10001):
 
         dense1.forward(X)
         activation1.forward(dense1.output)
-        dense5.forward(activation1.output)
-        activation5.forward(dense5.output)
-        dense2.forward(activation5.output)
+        dense2.forward(activation1.output)
         activation2.forward(dense2.output)
 
         loss = loss_mse.calculate(activation2.output, y)
 
-        if not epoch % 10:
+        if not epoch % 100:
             print('epoch:', epoch)
             print('\tLoss:', loss)
 
         loss_mse.backward(activation2.output, y)
         activation2.backward(loss_mse.dinputs)
         dense2.backward(activation2.dinputs)
-        activation5.backward(dense2.dinputs)
-        dense5.backward(activation5.dinputs)
-        activation1.backward(dense5.dinputs)
+        activation1.backward(dense2.dinputs)
         dense1.backward(activation1.dinputs)
 
         optimizer.update_params(dense1)
