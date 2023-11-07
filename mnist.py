@@ -133,7 +133,7 @@ def main():
     optimizer = Optimizer_SGD()
 
 
-    for epoch in range(11):
+    for epoch in range(101):
 
         dense1.forward(X)
         activation1.forward(dense1.output)
@@ -143,8 +143,6 @@ def main():
 
         predictions = np.argmax(loss_activation.output, axis=1)
         accuracy = np.mean(predictions==y)
-
-        # breakpoint()
 
         if not epoch % 10:
             print('epoch:', epoch)
@@ -165,6 +163,8 @@ def main():
 
     X = df.iloc[:, 1:].values
     y = df.iloc[:, 0].values
+
+    X = np.divide(X, 255.0)
         
     dense1.forward(X)
     activation1.forward(dense1.output)
