@@ -116,8 +116,6 @@ class Optimizer_SGD:
 
 def main():
 
-    nnfs.init()
-    
     df = pd.read_csv('./data/mnist_train.csv')
 
     X = df.iloc[:, 1:].values
@@ -138,8 +136,7 @@ def main():
         dense1.forward(X)
         activation1.forward(dense1.output)
         dense2.forward(activation1.output)
-        activation2.forward(dense2.output)
-        loss = loss_activation.forward(activation2.output, y)
+        loss = loss_activation.forward(dense2.output, y)
 
         predictions = np.argmax(loss_activation.output, axis=1)
         accuracy = np.mean(predictions==y)
@@ -150,8 +147,7 @@ def main():
             print('\tAccuracy:', accuracy)
 
         loss_activation.backward(loss_activation.output, y)
-        activation2.backward(loss_activation.dinputs)
-        dense2.backward(activation2.dinputs)
+        dense2.backward(loss_activation.dinputs)
         activation1.backward(dense2.dinputs)
         dense1.backward(activation1.dinputs)
 
@@ -169,8 +165,7 @@ def main():
     dense1.forward(X)
     activation1.forward(dense1.output)
     dense2.forward(activation1.output)
-    activation2.forward(dense2.output)
-    loss = loss_activation.forward(activation2.output, y)
+    loss = loss_activation.forward(dense2.output, y)
 
     predictions = np.argmax(loss_activation.output, axis=1)
     accuracy = np.mean(predictions==y)
