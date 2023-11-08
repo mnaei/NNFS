@@ -50,7 +50,7 @@ def main():
     optimizer = Optimizer_SGD()
 
 
-    for epoch in range(1000):
+    for epoch in range(81):
 
         dense1.forward(X)
         activation1.forward(dense1.output)
