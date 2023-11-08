@@ -65,9 +65,6 @@ class Activation_softmax_Loss_CategoricalCrossentropy:
     def backward(self, dvalues, y_true):
         samples = len(dvalues)
 
-        if len(y_true.shape) == 2:
-            y_true = np.argmax(y_true, axis=1)
-        
         self.dinputs = dvalues.copy()
         self.dinputs[range(samples), y_true] -= 1
         self.dinputs = self.dinputs / samples
@@ -75,8 +72,8 @@ class Activation_softmax_Loss_CategoricalCrossentropy:
 class Optimizer_SGD:
     
     def update_params(self, layer):
-        layer.weights += -layer.dweights.astype(int) // 10
-        layer.biases += -layer.dbiases.astype(int) // 10
+        layer.weights += -layer.dweights.astype(np.int64) // 10
+        layer.biases += -layer.dbiases.astype(np.int64) // 10
     
 
 def main():
@@ -95,7 +92,7 @@ def main():
     optimizer = Optimizer_SGD()
 
 
-    for epoch in range(4):
+    for epoch in range(5):
 
         dense1.forward(X)
         activation1.forward(dense1.output)
@@ -110,11 +107,12 @@ def main():
             print('\tLoss:', loss)
             print('\tAccuracy:', accuracy)
 
-        breakpoint()
         loss_activation.backward(loss_activation.output, y)
         dense2.backward(loss_activation.dinputs)
         activation1.backward(dense2.dinputs)
         dense1.backward(activation1.dinputs)
+
+        # breakpoint()
 
         optimizer.update_params(dense1)
         optimizer.update_params(dense2)
