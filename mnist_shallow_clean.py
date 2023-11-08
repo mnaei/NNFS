@@ -36,7 +36,6 @@ class Optimizer_SGD:
         layer.weights += -layer.dweights.astype(np.int64) 
         layer.biases += -layer.dbiases.astype(np.int64) 
     
-
 def main():
 
     np.random.seed(0)
@@ -59,8 +58,7 @@ def main():
         predictions = np.argmax(activation1.output, axis=1)
         accuracy = np.mean(predictions==y)
 
-        if not epoch % 1:
-            print('epoch:', epoch, 'Accuracy:', accuracy)
+        print('epoch:', epoch, 'Accuracy:', accuracy)
 
         activation1.backward(activation1.output, y)
         dense1.backward(activation1.dinputs)
