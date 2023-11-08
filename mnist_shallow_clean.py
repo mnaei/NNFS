@@ -23,35 +23,6 @@ class Activation_Softmax:
         probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
         self.output = probabilities
     
-class Loss:
-
-    def calculate(self, output, y):
-        sample_losses = self.forward(output, y)
-        data_loss = np.mean(sample_losses)
-        return data_loss
-    
-class Loss_CategoricalCrossentropy(Loss):
-    
-    def forward(self, y_pred, y_true):
-        samples = len(y_pred)
-        y_pred_clipped = np.clip(y_pred, 1e-7, 1-1e-7)
-
-        correct_confidences = y_pred_clipped[range(samples), y_true]
-        
-        negative_log_likelihoods = -np.log(correct_confidences)
-        return negative_log_likelihoods
-
-class Activation_softmax_Loss_CategoricalCrossentropy:
-    
-    def __init__(self):
-        self.activation = Activation_Softmax()
-        self.loss = Loss_CategoricalCrossentropy()
-    
-    def forward(self, inputs, y_true):
-        self.activation.forward(inputs)
-        self.output = self.activation.output
-        return self.loss.calculate(self.output, y_true)
-    
     def backward(self, dvalues, y_true):
         samples = len(dvalues)
 
@@ -76,25 +47,23 @@ def main():
     y = df.iloc[:, 0].values
 
     dense1 = Layer_Dense(784, 10)
-    loss_activation = Activation_softmax_Loss_CategoricalCrossentropy()
+    activation1 = Activation_Softmax()
     optimizer = Optimizer_SGD()
 
 
     for epoch in range(1000):
 
         dense1.forward(X)
-        loss = loss_activation.forward(dense1.output, y)
+        activation1.forward(dense1.output)
 
-        predictions = np.argmax(loss_activation.output, axis=1)
+        predictions = np.argmax(activation1.output, axis=1)
         accuracy = np.mean(predictions==y)
 
         if not epoch % 1:
-            print('epoch:', epoch)
-            print('\tLoss:', loss)
-            print('\tAccuracy:', accuracy)
+            print('epoch:', epoch, 'Accuracy:', accuracy)
 
-        loss_activation.backward(loss_activation.output, y)
-        dense1.backward(loss_activation.dinputs)
+        activation1.backward(activation1.output, y)
+        dense1.backward(activation1.dinputs)
 
         optimizer.update_params(dense1)
 
