@@ -5,7 +5,7 @@ import pandas as pd
 class Layer_Dense:
 
     def __init__(self, inputs, neurons):
-        self.weights = 10 * np.random.randn(inputs, neurons)
+        self.weights = 0.01 * np.random.randn(inputs, neurons)
         self.biases = np.zeros((1, neurons))
 
     def forward(self, inputs):
@@ -54,7 +54,7 @@ class Loss_MeanSquaredError():
 
 class Optimizer_SGD:
 
-    def __init__(self, learning_rate=0.00000001):
+    def __init__(self, learning_rate=0.1):
         self.learning_rate = learning_rate
     
     def update_params(self, layer):
@@ -85,18 +85,21 @@ def main():
 
     X = X.fillna(X.mean())
 
+    X = X / X.max()
+    y = y / y.max()
+
     X = X.values
     y = y.values
 
-    dense1 = Layer_Dense(8, 8)
+    dense1 = Layer_Dense(8, 32)
     activation1 = Activation_ReLU()
-    dense2 = Layer_Dense(8, 1)
+    dense2 = Layer_Dense(32, 1)
     activation2 = Activation_Linear()
     loss_mse = Loss_MeanSquaredError()
     optimizer = Optimizer_SGD()
 
 
-    for epoch in range(2001):
+    for epoch in range(11):
 
         dense1.forward(X)
         activation1.forward(dense1.output)
@@ -105,7 +108,7 @@ def main():
 
         loss = loss_mse.calculate(activation2.output, y)
 
-        if not epoch % 1000:
+        if not epoch % 1:
             print('epoch:', epoch)
             print('\tLoss:', loss)
 
