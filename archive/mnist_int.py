@@ -80,7 +80,7 @@ def main():
 
     np.random.seed(0)
 
-    df = pd.read_csv('./data/mnist_train.csv')
+    df = pd.read_csv('../data/mnist_train.csv')
 
     X = df.iloc[:, 1:].values
     y = df.iloc[:, 0].values
